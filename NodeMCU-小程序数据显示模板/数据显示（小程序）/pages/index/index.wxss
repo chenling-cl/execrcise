@@ -1,0 +1,46 @@
+.OneNet {
+    height: 100vh;
+    flex-direction: column;
+}
+
+.list {
+    height: 95vh;
+}
+
+.course {
+    position: relative;
+    margin-top: 47px;
+    text-align: center;
+}
+
+.ImageM {
+    width: 20%;
+}
+
+.varFont {
+    font-size: 20px;
+    color: gray;
+}
+
+.varFontRed {
+    font-size: 20px;
+    color: red;
+}
+
+.text {
+    position: relative;
+    text-align: center;
+}
+
+.textFont {
+    font-size: 20px;
+    color: gray;
+}
+
+.Var {
+    position: relative;
+    text-align: center;
+}
+
+
+

@@ -1,0 +1,32 @@
+<view calss="OneNet">
+
+  <scroll-view class="list" scrollY="true">
+
+    <view class="course">
+      <view>
+        <image class="ImageM" mode="widthFix" src="../image/temp.png"></image>
+      </view>
+      <view class="text">
+        <text class="textFont">室内温度</text>
+      </view>
+      <view class="Var">
+        <text class="varFont" wx:if="{{temperature<=30}}">{{temperature}}℃</text>
+        <text class="varFontRed" wx:else>{{temperature}}℃(警告)</text>
+      </view>
+    </view>
+
+    <view class="course">
+      <view>
+        <image class="ImageM" mode="widthFix" src="../image/humi.png"></image>
+      </view>
+      <view class="text">
+        <text class="textFont">室内湿度</text>
+      </view>
+      <view class="Var">
+        <text class="varFont" wx:if="{{humidity<=65}}">{{humidity}}RH</text>
+        <text class="varFontRed" wx:else>{{humidity}}RH(警告)</text>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

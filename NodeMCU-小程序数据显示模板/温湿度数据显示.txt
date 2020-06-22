@@ -1,0 +1,69 @@
+print("Set up wifi...")            --MESSAGE HINT 
+wifi.setmode(wifi.STATION)         --SET THE WiFi_MODE TO STATION
+cfg = {}                           --CREATE NEW TABLE
+cfg.ssid = "2.4G-603"              --SET WiFi NAME
+cfg.pwd = "CX071500"               --SET WiFi PASSWORD
+wifi.sta.config(cfg)               --CONFIG WiFi
+wifi.sta.connect()                 --CONNECT WiFi
+
+--Timer Init
+time1 = tmr.create()               --create timer1
+time2 = tmr.create()               --create timer1
+---------------------
+
+Dht11Pin7 = 7
+---------------------
+
+--Variable Init
+Four = 0
+DeviceID = "586718834"
+AuthInfo = "202003030925"
+ProductID = "322558"
+BrokerHost = "183.230.40.39"          
+Port = 6002 
+---------------------
+
+function Reconnect()
+    if wifi.sta.getip() == nil then             
+        print("disconnect,waiting for ip...")
+    else
+        time1:stop()
+        print("connect success!")                   
+        print("ip is "..wifi.sta.getip())
+
+        clientD = mqtt.Client(DeviceID, 120, ProductID, AuthInfo, 0)
+        clientD:connect(BrokerHost, Port, 0, function(client)        --connect device
+            print("Connect to success!")
+        end)
+        
+        time2:alarm(500, tmr.ALARM_AUTO, Up_AC_Message)    
+    end
+    
+end
+
+
+function Up_AC_Message()
+    Four = Four + 1
+    if(Four%4 == 0)then
+        Four = 0
+        status,temp,humi,temp_dec,humi_dec = dht.read11(Dht11Pin7)
+        print("temp is:"..temp, "humi is:"..humi)
+        HumiVar = humi
+        TempVar = temp
+        weather = {}                                               
+        weather.temperature = temp                                 
+        weather.humidity = humi
+        ok,weather_message = pcall(sjson.encode, weather)
+        header = string.char(3, 0, string.len(weather_message))..weather_message
+        clientD:publish("$dp",header,0,0,function(client)        
+            print("PUBLISH WEATHER SUCCESS!")
+        end)
+    end
+    
+    if(wifi.sta.getip() == nil) then
+        time2:stop()
+        time1:start()
+    end
+end
+
+time1:alarm(1000, tmr.ALARM_AUTO, Reconnect)    --do Reconnect()

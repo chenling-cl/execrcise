@@ -1,0 +1,72 @@
+--因本教程和四路继电器控制大部分相似，所以只注释部分代码
+--QQ交流群：612683349
+
+print("Set up wifi...")            
+wifi.setmode(wifi.STATION)        
+cfg = {}                           
+cfg.ssid = "2.4G-603"             
+cfg.pwd = "CX071500"              
+wifi.sta.config(cfg)               
+wifi.sta.connect()                
+
+--Timer Init
+time1 = tmr.create()              
+time2 = tmr.create()             
+---------------------
+
+Dht11Pin7 = 7
+---------------------
+
+--OneNET三元组
+Four = 0
+DeviceID = "586718834"              --换成自己的设备id
+AuthInfo = "202003030925"           --换成自己的鉴权信息
+ProductID = "322558"                --换成自己的产品id
+BrokerHost = "183.230.40.39"          
+Port = 6002 
+---------------------
+
+function Reconnect()
+    if wifi.sta.getip() == nil then             
+        print("disconnect,waiting for ip...")
+    else
+        time1:stop()
+        print("connect success!")                   
+        print("ip is "..wifi.sta.getip())
+
+        clientD = mqtt.Client(DeviceID, 120, ProductID, AuthInfo, 0)    --创建mqtt客户端
+        clientD:connect(BrokerHost, Port, 0, function(client)           --连接onenet设备
+            print("Connect to success!")
+        end)
+        
+        time2:alarm(500, tmr.ALARM_AUTO, Up_AC_Message)    
+    end
+    
+end
+
+
+function Up_AC_Message()
+    Four = Four + 1
+    if(Four%4 == 0)then
+        Four = 0
+        status,temp,humi,temp_dec,humi_dec = dht.read11(Dht11Pin7)
+        print("temp is:"..temp, "humi is:"..humi)
+        HumiVar = humi
+        TempVar = temp
+        weather = {}                                              --创建table存储温湿度 
+        weather.temperature = temp                                 
+        weather.humidity = humi
+        ok,weather_message = pcall(sjson.encode, weather)         --解析json
+        header = string.char(3, 0, string.len(weather_message))..weather_message    --解析成onenet上传数据的格式
+        clientD:publish("$dp",header,0,0,function(client)         --发布主题，内容为温湿度
+            print("PUBLISH WEATHER SUCCESS!")
+        end)
+    end
+    
+    if(wifi.sta.getip() == nil) then
+        time2:stop()
+        time1:start()
+    end
+end
+
+time1:alarm(1000, tmr.ALARM_AUTO, Reconnect)    --do Reconnect()
